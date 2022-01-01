@@ -1,0 +1,6 @@
+在访问这个网站之前，我们需要验证您的身份<br>
+请输入您的用户名和密码<br>
+<input type=text id=username placeholder=Username maxlength=24><br>
+<input type=password id=password placeholder=Password maxlength=16><br>
+<b>注意：请不要轻易把你的账号租借给他人使用，我们会记录下您每一次登录时的ip和设备信息，我们会检查您的账号是否有异常登录记录</b><br>
+<input type=button value=登录 onclick=javascript:login();>
