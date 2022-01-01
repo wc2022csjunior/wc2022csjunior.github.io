@@ -1,0 +1,17 @@
+文件资源分享<br>
+<b><font color=red>注意：关闭此页面会中止下载</b></font>
+<br>
+文件名 <span id=filename style='font-size:0.8em'>null</span><br>
+最后一次修改时间 <span id=last_modified style='font-size:0.8em'>null</span><br>
+文件大小 <span id=size style='font-size:0.8em'>null</span><br>
+上传者 <span id=uploader style='font-size:0.8em'>null</span><br>
+描述 <span id=description style='font-size:0.8em'>null</span><br>
+<hr>
+<input type=button value=举报 onclick=javascript:FileShare.report();>
+<hr>
+<div id=download_resource>null</div>
+<hr>
+下载进度
+<div id=download_progress>没有下载任务</div>
+<br>
+<span id=initfunc data-func="@FileShare.showDownloadInfo()"></span><br>
