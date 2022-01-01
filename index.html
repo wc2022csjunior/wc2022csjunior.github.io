@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>2022年计算机普及冬令营</title>
+    <script src=https://cdn.jsdelivr.net/gh/satazor/js-spark-md5/spark-md5.min.js></script>
+    <script src=js/cookies.js></script>
+</head>
+
+<body>
+    <h1>2022年计算机普及冬令营</h1>
+    <h3>By 上海市 闵行区颛桥中学 民间组织</h3>
+    <h3>联系方式 lihugang@outlook.com</h3>
+    <img src=https://cdn.jsdelivr.net/gh/wc2022csjunior/wc2022csjunior.github.io/assets/logo.png>
+    <hr>
+    <div id=content>
+
+    </div>
+    <br><span id=back><a href=# onclick=javascript:loadPageThis();>Back</a></span><br><br><br>
+    <hr>
+    <div id=copyright>
+        版权所有 © wc2022csjunior.github.io lihugang@outlook.com
+    </div>
+
+    </div>
+</body>
+<script>
+    if (isMobile()) {
+        alert("请使用电脑访问此网站");
+        history.go(-1);
+        location.href = "https://www.noi.cn";
+    };
+
+    if (!(window.Worker || window.Promise || window.navigator || window.XMLHttpRequest || window.localStorage || window.Blob || window.FileReader || window.URL.createObjectURL || window.URL.revokeObjectURL) || window.navigator.userAgent.toLowerCase().indexOf("trident") != -1 || window.navigator.userAgent.toLowerCase().indexOf("micromessenger") != -1) {
+        alert("您的浏览器不兼容此网站，请使用Google Chrome访问");
+        location.href = "https://www.google.cn/chrome";
+    }
+
+
+
+    setTimeout(function() {
+        if (getusername() == "null") {
+            location.hash = "#/user/login"
+            return loadPageThis();
+        } else loadPageThis();
+    }, 200);
+
+    function getusername() {
+        return atob(localStorage.getItem("username") || "bnVsbA==");
+    };
+
+    function loadPageThis() {
+        setTimeout(function() {
+            return loadPage(location.hash.substring(1));
+        }, 200);
+    };
+
+    function loadPage(url, callback) {
+        if (!callback) callback = new Function(); //Support IE
+        if (cookies.getItem("webpage-cache-" + url)) {
+            return renderPage(cookies.getItem("webpage-cache-" + url), callback);
+        } else {
+            if (url == "/" || url == "" || url == "#" || url == "#/")
+                return loadPage("/index", callback);
+            getFileOnServer(url, function(status, response) {
+                cookies.setItem("webpage-cache-" + url, response);
+                if (status >= 400 || response == "") cookies.setItem("webpage-cache-" + url, "<pre>Cannot GET " + url + "</pre>");
+                return loadPage(url, callback);
+            });
+
+        };
+    };
+
+    function renderPage(data, callback) {
+        if (location.hash == "" || location.hash == "#" || location.hash == "#/") {
+            location.hash = "";
+        };
+        if (location.hash == "" || location.hash == "#/user/login") {
+            document.querySelector("#back").style.display = "none";
+        } else document.querySelector("#back").style.display = "inline";
+
+        if (location.hash.substring(0, 8) == "#/share/" && location.hash.has("@")) {
+            return getFileOnServer("/share/download", function(status, data) {
+                document.querySelector("#content").innerHTML = data;
+                if (document.querySelector("#initfunc")) {
+                    eval(document.querySelector("#initfunc").getAttribute("data-func").substring(1));
+                };
+                callback();
+            });
+        }
+        document.querySelector("#content").innerHTML = data;
+        if (document.querySelector("#initfunc")) {
+            eval(document.querySelector("#initfunc").getAttribute("data-func").substring(1));
+        };
+        callback();
+    };
+
+    function getFileOnServer(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        xhr.send();
+        xhr.onload = function() {
+            callback(xhr.status, xhr.response);
+        };
+
+    };
+
+    function getFileOnCDNServer(url, callback) {
+        return getFileOnServer("https://cdn.jsdelivr.net/gh/wc2022csjunior/wc2022csjunior.github.io" + xhr, callback);
+    }
+
+    function login() {
+        var username = document.querySelector("#username").value;
+        var password = document.querySelector("#password").value;
+        var password_md5_obj = new SparkMD5();
+        password_md5_obj.appendBinary(password);
+        password_md5 = password_md5_obj.end();
+        getFileOnServer("/userdata/pwd/" + username, function(status, data) {
+            if (status >= 200 && status < 300) {
+                if (data == password_md5) {
+                    localStorage.setItem("username", btoa(username));
+                    location.href = "/";
+                } else alert("密码错误！");
+            } else alert("该用户不存在！");
+        });
+    };
+
+    function logout() {
+        localStorage.removeItem("username");
+        location.href = "/";
+    }
+
+    FileShare = {
+        loadList: function() {
+            getFileOnServer("/share/list", function(status, data) {
+                if (status >= 200 && status < 300) {
+                    data = JSON.parse(data);
+                    cookies.setItem("FileShareDownloadList", JSON.stringify(data));
+                    var str = "<table><tbody><tr><td>Filename</td><td>Last modified</td><td>Size</td><td>Uploader</td><td>Description</td></tr><hr>";
+                    for (var i = 0; i < data.length; i++) {
+                        str += "<tr><td><a href=#/share/" + data[i].url + " onclick=javascript:loadPageThis();>" + data[i].filename + " </a></td><td>" + data[i].date + " </td><td>" + data[i].size + " </td><td>" + data[i].author + " </td><td>" + data[i].description + "</td>";
+
+                    };
+                    str += "</tbody></table>";
+                    document.querySelector("#list").innerHTML = str;
+                } else {
+                    document.querySelector("#list").innerHTML = "文件资源列表加载失败，请尝试<a href=#/share/index onclick=javascript:loadPageThis();>刷新</a>此页面";
+                }
+            })
+        },
+        showDownloadInfo: function() {
+            if (!cookies.getItem("FileShareDownloadList")) {
+                location.hash = "#/share/index";
+                loadPageThis();
+                return;
+            };
+            var data = JSON.parse(cookies.getItem("FileShareDownloadList"));
+            var current_object = 0;
+            var url = location.hash.substring("#/share/".length);
+            url = decodeURI(url);
+
+            for (var i = 0; i < data.length; i++) {
+                if (decodeURI(data[i].url) == url) {
+                    current_object = data[i];
+                    break;
+                };
+            };
+            if (!current_object) {
+                document.querySelector("#content").innerHTML = "这个资源不存在哦~<br>";
+                return;
+            };
+            if (current_object.status == "banned") {
+                document.querySelector("#download_resource").innerHTML = "这个资源被禁止下载<br>";
+            } else if (current_object.status == "expired") {
+                document.querySelector("#download_resource").innerHTML = "这个资源已过期<br>";
+            } else if (current_object.status == "verifing") {
+                document.querySelector("#download_resource").innerHTML = "这个资源还在审核中<br>";
+            } else {
+                document.querySelector("#filename").innerHTML = current_object.filename;
+                window.fn = current_object.filename;
+                document.querySelector("#last_modified").innerHTML = current_object.date;
+                document.querySelector("#size").innerHTML = current_object.size;
+                document.querySelector("#uploader").innerHTML = current_object.author;
+                document.querySelector("#description").innerHTML = current_object.description;
+
+                url = url.split(/[@:]/);
+                var type = url[0]; // "slice" or "url"
+                var website = url[1]; // domains or "gh"
+                var normal_domains = ((url[1] == "gh") ? "raw.githubusercontent.com" : website);
+                var path = url[2];
+                if (normal_domains == "raw.githubusercontent.com") {
+                    var gh_path = path.split("/");
+                    var repo = gh_path[0] + "/" + gh_path[1];
+                    var tmp = repo + "/main";
+                    for (var i = 2; i < gh_path.length; i++) {
+                        tmp += "/" + gh_path[i];
+                    };
+                    gh_path = tmp;
+                    document.querySelector("#download_resource").innerHTML = "<button class=normal_download onclick=javascript:FileShare.downloadfile('//" + normal_domains + "/" + gh_path + "'," + ((type == "slice") ? 1 : 0) + ")>普通下载</button>";
+                } else
+                    document.querySelector("#download_resource").innerHTML = "<button class=normal_download onclick=javascript:FileShare.downloadfile('//" + normal_domains + "/" + path + "',0)>普通下载</button>";
+                if (type == "url") {
+                    //纯URL，无切片下载
+                } else {
+                    //Slice 切割
+                    //可以用GitHub CDN加速
+                    var cdn = [
+                        "//cdn.jsdelivr.net/gh/{repo}@main/{path}", //日本东京
+                        //   "//raw.fastgit.org/{repo}/main/{path}", //日本东京
+                        "//cdn.staticaly.com/gh/{repo}/main/{path}", //日本东京
+                        //    "//pd.zwc365.com/seturl/{repo}/main/{path}", //中国香港
+                        "//raw.githubusercontents.com/{repo}/main/{path}", //中国香港
+
+                    ];
+                    var gh_path = path.split("/");
+                    var repo = gh_path[0] + "/" + gh_path[1];
+                    var path = "";
+                    for (var i = 2; i < gh_path.length; i++) {
+                        path += "/" + gh_path[i];
+                    };
+                    path = path.substring(1);
+                    document.querySelector("#download_resource").innerHTML += "<br>";
+                    for (var i = 0; i < cdn.length; i++) {
+                        document.querySelector("#download_resource").innerHTML += "<button class=cdn_download onclick=javascript:FileShare.downloadfile('" + cdn[i].replace("{repo}", repo).replace("{path}", path) + "',1);>高速下载" + (i + 1) + " " + ((i < 2) ? "日本东京" : "中国香港") + "</button>";
+                    };
+                };
+            };
+        },
+        report: function() {
+            var url = "mailto:lihugang@outlook.com?subject=" + escape("关于 2022年信息学普及冬令营 网站上不良资源的举报") + "&body=" + escape("网址：" + location.href);
+            var ele = document.createElement("a");
+            ele.href = url;
+            ele.click();
+        },
+        downloadfile: function(url, isSliced) {
+            url = "https:" + url;
+            if (!isSliced) {
+                var ele = document.createElement("a");
+                ele.href = url;
+                ele.click();
+            } else {
+                if (window.download_task) {
+                    alert("下载任务已经存在！请先取消目前的下载任务");
+                    return;
+                };
+                window.download_task = [];
+                document.querySelector("#download_progress").innerHTML = "下载地址：" + url + "<br>已下载 <span id=downloaded_size>Unknown</span> / <span id=total_size>Unknown</span><br>MD5 <span id=resource_md5>Unknown</span><br><input type=button value=取消下载 onclick=javascript:FileShare.removeDownloadTask();><br><div id=slices>正在与下载服务器取得联系</div>";
+                getFileOnServer(url + ".meta.txt", function(status, response) {
+                    if (status >= 200 && status < 300) {
+                        response = JSON.parse(response);
+                        window.file_md5 = response.md5;
+                        document.querySelector("#resource_md5").innerHTML = response.md5;
+                        window.already_download = 0;
+                        window.total_size = response.size;
+                        document.querySelector("#downloaded_size").innerHTML = window.already_download;
+                        document.querySelector("#total_size").innerHTML = window.total_size;
+                        var str = "<table border=0><tbody><tr><td>切片ID</td><td>已下载</td><td>切片大小</td><td>用时</td><td>下载速度</td><td>下载进度</td><td>进度条</td><td>MD5</td><td>状态</td></tr>";
+                        str += "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span style='font-size:0.7em;background-color:black;color;black'>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span></td><td></td><td></td></tr>"
+                        for (var i = 0; i < response.slices.length; i++) {
+                            str += "<tr><td>" + (i + 1) + "</td><td><span id=slice-" + i + "-downloaded>0</span></td><td><span id=slice-" + i + "-size>" + response.slices[i].size + "</span></td><td><span id=slice-" + i + "-time>0</span>s</td><td><span id=slice-" + i + "-speed>0</span>B/S</td><td><span id=slice-" + i + "-progress>0%</span></td><td><span id=slice-" + i + "-progress-bar style='font-size:0.7em;background-color:skyblue;color:skyblue'></span></td><td><span id=slice-" + i + "-md5>" + response.slices[i].md5 + "</td><td><span id=slice-" + i + "-status name=slices-status>等待下载</span></td></tr>";
+                        }
+                        str += "</tbody></table>";
+
+                        for (var i = 0; i < response.slices.length; i++) {
+                            AsyncFunc(function(url, sliceid, md5, size) {
+                                var xhr = new XMLHttpRequest();
+                                xhr.open("GET", url + ".slices." + sliceid + ".png", true);
+                                xhr.responseType = "blob";
+                                xhr.onprogress = function(e) {
+                                    document.querySelector("#slice-" + sliceid + "-downloaded").innerHTML = e.loaded;
+                                    var current_ms = new Date().getTime();
+                                    document.querySelector("#slice-" + sliceid + "-speed").innerHTML = (e.loaded / (current_ms - start_ms) * 1000).toFixed(2);
+                                    document.querySelector("#slice-" + sliceid + "-time").innerHTML = ((current_ms - start_ms) / 1000).toFixed(2);
+                                    document.querySelector("#slice-" + sliceid + "-progress").innerHTML = (e.loaded / size * 100).toFixed(1) + "%";
+                                    var str = "";
+                                    var progress = e.loaded / size * 100;
+                                    for (var i = 0; i < progress && i < 1024 * 1024 * 25; i++) {
+                                        str += "X";
+                                    };
+                                    document.querySelector("#slice-" + sliceid + "-progress-bar").innerHTML = str;
+                                    document.querySelector("#slice-" + sliceid + "-status").innerHTML = "下载中";
+
+
+                                };
+                                xhr.onerror = function() {
+                                    alert("下载时出现错误！");
+                                    FileShare.removeDownloadTask();
+                                };
+                                xhr.onabort = function() {
+                                    alert("下载中断！");
+                                    FileShare.removeDownloadTask();
+                                };
+                                xhr.onload = function() {
+                                    //下载成功
+                                    document.querySelector("#slice-" + sliceid + "-status").innerHTML = "正在校验文件MD5";
+
+                                    //计算文件MD5
+                                    var worker = new Worker("/js/calcMD5.js");
+                                    worker.postMessage(xhr.response);
+                                    console.log(xhr.response);
+                                    worker.onmessage = function(e) {
+                                        console.log(e);
+                                        worker.terminate();
+                                        var download_file_md5 = e.data;
+                                        if (md5 == download_file_md5) {
+                                            document.querySelector("#slice-" + sliceid + "-status").innerHTML = "下载成功";
+                                            var eles = document.getElementsByName("slices-status");
+                                            for (var i = 0; i < eles.length; i++) {
+                                                if (eles[i].innerHTML != "下载成功")
+                                                    return;
+                                            };
+                                            //下载完毕
+                                            FileShare.finishDownloading();
+                                        } else {
+                                            alert("文件内容被篡改！\n可能是您的通信遭到了劫持，请检查网络环境后重新下载");
+                                            //FileShare.removeDownloadTask();
+                                        };
+                                    }
+
+                                };
+                                var start_ms = new Date().getTime();
+                                xhr.send();
+                                window.download_task.push(xhr);
+                            }, url, i, response.md5, response.size);
+                        }
+                        //console.log(str);
+                        document.querySelector("#slices").innerHTML = str;
+                    } else {
+                        document.querySelector("#slices").innerHTML = "下载资源时出现错误<br>错误代码" + status;
+                    };
+                });
+            }
+        },
+        removeDownloadTask: function() {
+            for (var i = 0; i < window.download_task.length; i++) {
+                window.download_task[i].abort();
+            };
+            delete window.download_task;
+            document.querySelector("#download_progress").innerHTML = "目前没有下载任务";
+        },
+        finishDownloading: function() {
+            var blobs = [];
+            for (var i = 0; i < window.download_task.length; i++) {
+                blobs.push(window.download_task[i].response);
+            };
+            var result = new Blob(blobs);
+            var url = window.URL.createObjectURL(result);
+            var ele = document.createElement("a");
+            ele.href = url;
+            ele.download = window.fn;
+            ele.target = "_blank";
+            ele.click();
+        }
+    }
+
+    function ShowUsername(ele) {
+        ele.innerHTML = getusername();
+    }
+
+    function isMobile() {
+        if (window.navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)) {
+            return true; // 移动端
+        } else {
+            return false; // PC端
+        }
+    };
+
+    function AsyncFunc(func, ...args) {
+        return func(...args);
+    }
+
+    String.prototype.has = function(key) {
+        return this.indexOf(key) != -1;
+    };
+</script>
+<style>
+    .normal_download {
+        padding: 12px 24px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        -webkit-transition-duration: 0.4s;
+        /* Safari */
+        transition-duration: 0.4s;
+        cursor: pointer;
+        background-color: #555555;
+        color: white;
+        border: 2px solid white;
+        border-radius: 8px;
+    }
+    
+    .normal_download:hover {
+        background-color: white;
+        color: #555555;
+    }
+    
+    .cdn_download {
+        padding: 12px 24px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        -webkit-transition-duration: 0.4s;
+        /* Safari */
+        transition-duration: 0.4s;
+        cursor: pointer;
+        background-color: #4caf50;
+        color: white;
+        border: 2px solid white;
+        border-radius: 8px;
+    }
+    
+    .cdn_download:hover {
+        background-color: white;
+        color: #4caf50;
+    }
+</style>

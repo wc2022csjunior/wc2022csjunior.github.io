@@ -1,0 +1,5 @@
+        用户名 <span id=dp_username>null</span><span id=initfunc data-func="@ShowUsername(document.querySelector('#dp_username'));"></span><br>
+        <a href=#/user/logout onclick=javascript:logout();>退出登录</a><br>
+        <a href=#/homework/index onclick=javascript:loadPageThis();>作业提交</a><br>
+        <a href=#/quiz/index onclick=javascript:loadPageThis();>测试</a><br>
+        <a href=#/share/index onclick=javascript:loadPageThis();>资源分享</a><br> 三分钟做出来的网站，没有美术设计，有不足之处还望大家见谅
