@@ -1,0 +1,4 @@
+文件资源分享
+<span id=initfunc data-func="@FileShare.loadList()"></span><br>
+<div id=list>
+</div>
